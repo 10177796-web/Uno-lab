@@ -307,34 +307,49 @@ def display_card_backs(count):
         brain.screen.set_cursor(3, 1)
         brain.screen.print("[UNO CARD BACK]")
         wait(500, MSEC)
+def FORWARD_STEPS = 2
+
+def drive_forward(steps=1):
+    """Broadcasts FWD movement for the specified number of grid steps."""
+    for _ in range(steps):
+        FWD.broadcast_and_wait()
+
+def turn_right_90():
+    """Executes a single 90-degree right turn via broadcast."""
+    RT.broadcast_and_wait()
+
+def turn_left_90():
+    """Executes a single 90-degree left turn via broadcast."""
+    LT.broadcast_and_wait()
+
+def turn_around():
+    """Executes a 180-degree turn using two right turns."""
+    turn_right_90()
+    turn_right_90()
 
 def robot_trip_action(action_name):
     """
-    Drives robot to the center using event broadcasts, performs 
-    the card action, and drives back to the player. Hides hand for privacy.
+    Drives robot to the center, performs card action (draw/discard),
+    turns around, drives back to player, and re-orients itself.
     """
-    # Hide player's hand while driving
+    # 1. Enable Privacy Mode while navigating
     display_screen("PRIVACY MODE", "Robot Moving...")
     
-    # 1. Drive to center (2 forward movements)
-    FWD.broadcast_and_wait()
-    FWD.broadcast_and_wait()
+    # 2. Drive to center (2 steps standard, or 1 if short table)
+    drive_forward(FORWARD_STEPS)
     
-    # 2. Perform action at center (Draw / Discard)
+    # 3. Perform the draw / discard action at center
     display_screen("Action: " + action_name)
     wait(1000, MSEC)
     
-    # 3. Turn around (180 degrees via two right turns)
-    RT.broadcast_and_wait()
-    RT.broadcast_and_wait()
+    # 4. Turn around (180 degrees using two 90-degree right turns)
+    turn_around()
     
-    # 4. Drive back to player (2 forward movements)
-    FWD.broadcast_and_wait()
-    FWD.broadcast_and_wait()
+    # 5. Drive back to player
+    drive_forward(FORWARD_STEPS)
     
-    # 5. Turn back to starting orientation
-    RT.broadcast_and_wait()
-    RT.broadcast_and_wait()
+    # 6. Turn around again to restore original orientation
+    turn_around()
 
 def create_uno_deck():
     """Generates a standard 108-card UNO deck using dictionaries."""
